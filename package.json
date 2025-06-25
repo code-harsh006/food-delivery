@@ -1,0 +1,22 @@
+{
+  "name": "food-delivery-backend",
+  "version": "1.0.0",
+  "description": "Food delivery backend API built with Go",
+  "main": "api/index.go",
+  "scripts": {
+    "build": "echo 'Building Go serverless function...' && go mod tidy",
+    "start": "echo 'This is a serverless function - deploy to Vercel'",
+    "dev": "go run cmd/main.go",
+    "install": "go mod download && go mod tidy",
+    "test": "go test -v ./...",
+    "vercel-build": "echo 'Vercel will build the Go function automatically'",
+    "deploy": "vercel --prod",
+    "deploy-preview": "vercel"
+  },
+  "keywords": ["go", "golang", "api", "food-delivery", "backend", "serverless", "vercel"],
+  "author": "Food Delivery Team",
+  "license": "MIT",
+  "engines": {
+    "go": ">=1.21"
+  }
+}
