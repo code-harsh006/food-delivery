@@ -56,9 +56,10 @@ A complete, production-ready Golang backend for a modern food and grocery delive
 ├── api/                   # API documentation
 ├── migrations/            # Database migrations
 ├── docker-compose.yml     # Docker services
-├── Dockerfile            # Application container
-├── Makefile              # Build automation
-└── .env                  # Environment variables
+├── Dockerfile             # Application container
+├── Makefile               # Build automation
+└── .env                   # Environment variables
+
 \`\`\`
 
 ## 🚦 Quick Start
