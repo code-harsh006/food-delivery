@@ -31,7 +31,7 @@ A complete, production-ready Golang backend for a modern food and grocery delive
 
 ## 🏗️ Architecture
 
-\`\`\`
+
 ├── cmd/                    # Application entrypoints
 │   ├── main.go            # Main application
 │   └── seed/              # Database seeder
@@ -60,7 +60,7 @@ A complete, production-ready Golang backend for a modern food and grocery delive
 ├── Makefile               # Build automation
 └── .env                   # Environment variables
 
-\`\`\`
+
 
 ## 🚦 Quick Start
 
