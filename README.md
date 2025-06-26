@@ -32,34 +32,6 @@ A complete, production-ready Golang backend for a modern food and grocery delive
 ## 🏗️ Architecture
 
 
-├── cmd/                    # Application entrypoints
-│   ├── main.go            # Main application
-│   └── seed/              # Database seeder
-├── internal/              # Private application code
-│   ├── auth/              # Authentication module
-│   ├── user/              # User management
-│   ├── product/           # Product management
-│   ├── vendor/            # Vendor management
-│   ├── cart/              # Shopping cart
-│   ├── order/             # Order management
-│   ├── payment/           # Payment processing
-│   ├── delivery/          # Delivery management
-│   ├── admin/             # Admin functionality
-│   ├── notification/      # Notifications
-│   └── search/            # Search & recommendations
-├── pkg/                   # Public/shared packages
-│   ├── config/            # Configuration management
-│   ├── db/                # Database connections
-│   ├── middleware/        # HTTP middleware
-│   ├── logger/            # Logging utilities
-│   └── utils/             # Common utilities
-├── api/                   # API documentation
-├── migrations/            # Database migrations
-├── docker-compose.yml     # Docker services
-├── Dockerfile             # Application container
-├── Makefile               # Build automation
-└── .env                   # Environment variables
-
 
 
 ## 🚦 Quick Start
