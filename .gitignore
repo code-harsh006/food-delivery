@@ -1,0 +1,20 @@
+# Ignore log files
+*.log
+
+# Ignore temporary directories
+temp/
+cache/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore compiled files
+*.o
+*.pyc
+*.class
+
+# Ignore specific files
+secret.txt
+.env
+
