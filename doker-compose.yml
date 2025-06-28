@@ -6,18 +6,93 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # Database Configuration
       - DATABASE_URL=postgres://fooddelivery:password@postgres:5432/fooddelivery?sslmode=disable
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your-super-secret-jwt-key
+      
+      # JWT Configuration
+      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      
+      # Server Configuration
+      - PORT=8080
       - ENVIRONMENT=development
+      
+      # Payment Configuration
       - STRIPE_KEY=sk_test_dummy
+      - STRIPE_PUBLISHABLE_KEY=pk_test_dummy
+      - STRIPE_WEBHOOK_SECRET=whsec_dummy
+      - PAYPAL_CLIENT_ID=your_paypal_client_id
+      - PAYPAL_CLIENT_SECRET=your_paypal_client_secret
+      - PAYPAL_MODE=sandbox
+      
+      # Map & Location Services
+      - GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+      - MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
+      - DEFAULT_LATITUDE=40.7128
+      - DEFAULT_LONGITUDE=-74.0060
+      - DEFAULT_RADIUS=5000
+      
+      # Tracking & Delivery
+      - TRACKING_API_KEY=your_tracking_api_key
+      - DELIVERY_RADIUS_KM=10
+      - ESTIMATED_DELIVERY_TIME_MIN=30
+      - MAX_DELIVERY_TIME_MIN=60
+      
+      # Email Configuration
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USERNAME=your_email@gmail.com
+      - SMTP_PASSWORD=your_email_password
+      - EMAIL_FROM=noreply@fooddelivery.com
+      
+      # SMS Configuration
+      - TWILIO_ACCOUNT_SID=your_twilio_account_sid
+      - TWILIO_AUTH_TOKEN=your_twilio_auth_token
+      - TWILIO_PHONE_NUMBER=+1234567890
+      
+      # Push Notifications
+      - FIREBASE_PROJECT_ID=your_firebase_project_id
+      - FIREBASE_PRIVATE_KEY_ID=your_firebase_private_key_id
+      - FIREBASE_PRIVATE_KEY=your_firebase_private_key
+      - FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+      - FIREBASE_CLIENT_ID=your_firebase_client_id
+      
+      # File Upload
+      - AWS_ACCESS_KEY_ID=your_aws_access_key
+      - AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+      - AWS_REGION=us-east-1
+      - AWS_S3_BUCKET=your_s3_bucket_name
+      - MAX_FILE_SIZE=5242880
+      
+      # Rate Limiting
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=900
+      
+      # Logging
+      - LOG_LEVEL=info
+      - LOG_FILE=logs/app.log
+      
+      # Security
+      - CORS_ORIGIN=http://localhost:3000
+      - SESSION_SECRET=your_session_secret
+      - BCRYPT_COST=12
+      
+      # Cache Configuration
+      - CACHE_TTL=3600
+      - REDIS_CACHE_TTL=1800
+      
+      # Monitoring
+      - SENTRY_DSN=your_sentry_dsn
+      - NEW_RELIC_LICENSE_KEY=your_new_relic_key
     depends_on:
       - postgres
       - redis
     volumes:
       - .:/app
+      - ./logs:/app/logs
     networks:
       - food-delivery-network
+    restart: unless-stopped
 
   postgres:
     image: postgres:15-alpine
@@ -31,6 +106,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - food-delivery-network
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
@@ -40,6 +116,7 @@ services:
       - redis_data:/data
     networks:
       - food-delivery-network
+    restart: unless-stopped
 
   adminer:
     image: adminer
@@ -49,6 +126,20 @@ services:
       - postgres
     networks:
       - food-delivery-network
+    restart: unless-stopped
+
+  # Optional: Add Redis Commander for Redis management
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - redis
+    networks:
+      - food-delivery-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:

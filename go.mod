@@ -1,4 +1,4 @@
-module github.com/code-harsh006/go-backend-app
+module github.com/code-harsh006/food-delivery
 
 go 1.23
 

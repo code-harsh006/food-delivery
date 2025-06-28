@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/code-harsh006/food-delivery/pkg/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"food-delivery/pkg/config"
 )
 
 type Claims struct {
@@ -27,7 +27,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
-		
+
 		cfg := config.Load()
 		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(cfg.JWTSecret), nil
@@ -80,4 +80,3 @@ func GenerateToken(userID uint, email, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(cfg.JWTSecret))
 }
-

@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/code-harsh006/food-delivery/pkg/db"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"food-delivery/pkg/db"
 )
 
 type Module struct {
@@ -55,7 +55,7 @@ func (m *Module) searchProducts(c *gin.Context) {
 	}
 
 	// Sort by relevance (name match first, then description match)
-	searchQuery = searchQuery.Order("CASE WHEN LOWER(name) LIKE ? THEN 1 ELSE 2 END, name ASC", searchTerm)
+	searchQuery = searchQuery.Order("CASE WHEN LOWER(name) LIKE '" + searchTerm + "' THEN 1 ELSE 2 END, name ASC")
 
 	if err := searchQuery.Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search products"})
@@ -63,9 +63,9 @@ func (m *Module) searchProducts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"query":    query,
-		"results":  products,
-		"count":    len(products),
+		"query":   query,
+		"results": products,
+		"count":   len(products),
 	})
 }
 
@@ -100,12 +100,12 @@ func (m *Module) searchVendors(c *gin.Context) {
 
 func (m *Module) getRecommendations(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	// Stub implementation for personalized recommendations
 	// In a real implementation, you would use ML algorithms, user history, etc.
-	
+
 	var recommendations []db.Product
-	
+
 	// Get user's order history to find preferred categories
 	var orderItems []db.OrderItem
 	m.db.Joins("JOIN orders ON orders.id = order_items.order_id").
@@ -126,7 +126,7 @@ func (m *Module) getRecommendations(c *gin.Context) {
 
 	// Get recommended products from preferred categories
 	query := m.db.Preload("Vendor").Preload("Category").Where("is_active = ?", true)
-	
+
 	if len(preferredCategories) > 0 {
 		query = query.Where("category_id IN ?", preferredCategories)
 	}
@@ -155,8 +155,7 @@ func (m *Module) getRecommendations(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"recommendations": recommendations,
-		"count":          len(recommendations),
-		"type":           "personalized",
+		"count":           len(recommendations),
+		"type":            "personalized",
 	})
 }
-

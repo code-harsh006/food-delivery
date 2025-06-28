@@ -1,11 +1,9 @@
 package middleware
 
 import (
-	"time"
-
+	"github.com/code-harsh006/food-delivery/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"food-delivery/pkg/logger"
 )
 
 func Logger() gin.HandlerFunc {
@@ -20,4 +18,3 @@ func Logger() gin.HandlerFunc {
 		return ""
 	})
 }
-

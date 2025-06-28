@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  app:
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - go-mod-cache:/go/pkg/mod
+    command: go run cmd/main.go
+    ports:
+      - "8080:8080"
+      - "2345:2345" # Delve debugger
+
+  # Development database with data persistence
+  postgres:
+    environment:
+      - POSTGRES_DB=fooddelivery_dev
+      - POSTGRES_USER=fooddelivery
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Redis with persistence
+  redis:
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    command: redis-server --appendonly yes
+
+  # Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - food-delivery-network
+
+  # MinIO for S3-compatible file storage
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - food-delivery-network
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Web UI
+      - "14268:14268" # HTTP collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - food-delivery-network
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  minio_data:
+  go-mod-cache: 

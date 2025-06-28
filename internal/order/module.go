@@ -1,10 +1,10 @@
-package notification
+package order
 
 import (
 	"net/http"
 
+	"github.com/code-harsh006/food-delivery/pkg/logger"
 	"github.com/gin-gonic/gin"
-	"food-delivery/pkg/logger"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +39,7 @@ func (m *Module) sendNotification(c *gin.Context) {
 
 	// Stub implementation for sending push notifications
 	// In a real implementation, you would integrate with FCM, APNs, etc.
-	
+
 	logger.Info("Sending notification",
 		zap.Uint("user_id", req.UserID),
 		zap.String("title", req.Title),
@@ -57,12 +57,12 @@ func (m *Module) sendNotification(c *gin.Context) {
 
 func (m *Module) subscribeToNotifications(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	// WebSocket connection would be established here
 	// For now, we'll just return a success message
-	
+
 	logger.Info("User subscribed to notifications", zap.Any("user_id", userID))
-	
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Subscribed to notifications successfully",
 		"user_id": userID,
@@ -92,4 +92,3 @@ func (m *Module) SendPromotionalNotification(userID uint, title, message string)
 		zap.String("message", message),
 	)
 }
-

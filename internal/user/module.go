@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/code-harsh006/food-delivery/pkg/db"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"food-delivery/pkg/db"
 )
 
 type Module struct {
@@ -32,7 +32,7 @@ func (m *Module) SetupRoutes(router *gin.RouterGroup, authMiddleware gin.Handler
 
 func (m *Module) getProfile(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var user db.User
 	if err := m.db.Preload("Addresses").First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -49,7 +49,7 @@ type UpdateProfileRequest struct {
 
 func (m *Module) updateProfile(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var req UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -75,7 +75,7 @@ func (m *Module) updateProfile(c *gin.Context) {
 
 func (m *Module) getAddresses(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var addresses []db.Address
 	if err := m.db.Where("user_id = ?", userID).Find(&addresses).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch addresses"})
@@ -96,7 +96,7 @@ type CreateAddressRequest struct {
 
 func (m *Module) createAddress(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var req CreateAddressRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -124,7 +124,7 @@ func (m *Module) createAddress(c *gin.Context) {
 func (m *Module) updateAddress(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	addressID, _ := strconv.Atoi(c.Param("id"))
-	
+
 	var req CreateAddressRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -155,7 +155,7 @@ func (m *Module) updateAddress(c *gin.Context) {
 func (m *Module) deleteAddress(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	addressID, _ := strconv.Atoi(c.Param("id"))
-	
+
 	if err := m.db.Where("id = ? AND user_id = ?", addressID, userID).Delete(&db.Address{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete address"})
 		return
@@ -163,4 +163,3 @@ func (m *Module) deleteAddress(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Address deleted successfully"})
 }
-

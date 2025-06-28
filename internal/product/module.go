@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/code-harsh006/food-delivery/pkg/db"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"food-delivery/pkg/db"
 )
 
 type Module struct {
@@ -63,7 +63,7 @@ func (m *Module) getProducts(c *gin.Context) {
 
 func (m *Module) getProduct(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	
+
 	var product db.Product
 	if err := m.db.Preload("Vendor").Preload("Category").First(&product, id).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
@@ -111,7 +111,7 @@ func (m *Module) createProduct(c *gin.Context) {
 
 func (m *Module) updateProduct(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	
+
 	var req CreateProductRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -141,7 +141,7 @@ func (m *Module) updateProduct(c *gin.Context) {
 
 func (m *Module) deleteProduct(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	
+
 	if err := m.db.Delete(&db.Product{}, id).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
 		return
@@ -182,4 +182,3 @@ func (m *Module) createCategory(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"message": "Category created successfully", "category": category})
 }
-

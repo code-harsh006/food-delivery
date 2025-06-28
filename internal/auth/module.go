@@ -2,13 +2,12 @@ package auth
 
 import (
 	"net/http"
-	"time"
 
+	"github.com/code-harsh006/food-delivery/pkg/db"
+	"github.com/code-harsh006/food-delivery/pkg/middleware"
+	"github.com/code-harsh006/food-delivery/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"food-delivery/pkg/db"
-	"food-delivery/pkg/middleware"
-	"food-delivery/pkg/utils"
 )
 
 type Module struct {
@@ -133,4 +132,3 @@ func (m *Module) refresh(c *gin.Context) {
 	// For now, we'll just return a success message
 	c.JSON(http.StatusOK, gin.H{"message": "Token refreshed"})
 }
-

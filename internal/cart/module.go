@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/code-harsh006/food-delivery/pkg/db"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/gorm"
-	"food-delivery/pkg/db"
 )
 
 type Module struct {
@@ -37,33 +37,33 @@ func (m *Module) SetupRoutes(router *gin.RouterGroup, authMiddleware gin.Handler
 
 type CartResponse struct {
 	Items       []CartItemResponse `json:"items"`
-	TotalAmount float64           `json:"total_amount"`
-	ItemCount   int               `json:"item_count"`
+	TotalAmount float64            `json:"total_amount"`
+	ItemCount   int                `json:"item_count"`
 }
 
 type CartItemResponse struct {
-	ProductID   uint    `json:"product_id"`
-	Product     db.Product `json:"product"`
-	Quantity    int     `json:"quantity"`
-	Subtotal    float64 `json:"subtotal"`
+	ProductID uint       `json:"product_id"`
+	Product   db.Product `json:"product"`
+	Quantity  int        `json:"quantity"`
+	Subtotal  float64    `json:"subtotal"`
 }
 
 func (m *Module) getCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	// Try to get cart from Redis first
 	cartKey := fmt.Sprintf("cart:%d", userID)
 	cartData, err := m.redis.Get(context.Background(), cartKey).Result()
-	
+
 	var cartItems []db.CartItem
-	
+
 	if err == redis.Nil {
 		// Cart not in Redis, get from database
 		if err := m.db.Preload("Product").Where("user_id = ?", userID).Find(&cartItems).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cart"})
 			return
 		}
-		
+
 		// Cache in Redis
 		if len(cartItems) > 0 {
 			cartJSON, _ := json.Marshal(cartItems)
@@ -75,7 +75,7 @@ func (m *Module) getCart(c *gin.Context) {
 	} else {
 		// Parse cart from Redis
 		json.Unmarshal([]byte(cartData), &cartItems)
-		
+
 		// Load product details
 		for i := range cartItems {
 			m.db.First(&cartItems[i].Product, cartItems[i].ProductID)
@@ -115,7 +115,7 @@ type AddToCartRequest struct {
 
 func (m *Module) addToCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var req AddToCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -172,7 +172,7 @@ type UpdateCartRequest struct {
 
 func (m *Module) updateCartItem(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	var req UpdateCartRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -201,7 +201,7 @@ func (m *Module) updateCartItem(c *gin.Context) {
 func (m *Module) removeFromCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	productID, _ := strconv.Atoi(c.Param("product_id"))
-	
+
 	if err := m.db.Where("user_id = ? AND product_id = ?", userID, productID).Delete(&db.CartItem{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove item from cart"})
 		return
@@ -216,7 +216,7 @@ func (m *Module) removeFromCart(c *gin.Context) {
 
 func (m *Module) clearCart(c *gin.Context) {
 	userID, _ := c.Get("user_id")
-	
+
 	if err := m.db.Where("user_id = ?", userID).Delete(&db.CartItem{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to clear cart"})
 		return
@@ -228,4 +228,3 @@ func (m *Module) clearCart(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Cart cleared successfully"})
 }
-
