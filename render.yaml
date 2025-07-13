@@ -2,24 +2,24 @@ services:
   - type: web
     name: food-delivery-api
     env: go
-    buildCommand: go build -o main cmd/main.go
-    startCommand: ./main
+    plan: free
+    buildCommand: go build -o food-delivery cmd/main.go
+    startCommand: ./food-delivery
     envVars:
       - key: PORT
         value: 8080
       - key: ENVIRONMENT
         value: production
+      - key: MONGODB_URI
+        value: mongodb+srv://madhavinternship2024:GDuUTED803LIihgx@cluster0.zpn8u9a.mongodb.net/food?retryWrites=true&w=majority
+      - key: DATABASE_URL
+        value: postgres://user:password@localhost/fooddelivery?sslmode=disable
       - key: JWT_SECRET
         generateValue: true
-      - key: DATABASE_URL
-        fromDatabase:
-          name: food-delivery-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: food-delivery-redis
-          property: connectionString
+      - key: CORS_ORIGIN
+        value: "*"
+    healthCheckPath: /health
+    autoDeploy: true
 
 databases:
   - name: food-delivery-db

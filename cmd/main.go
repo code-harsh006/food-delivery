@@ -77,7 +77,7 @@ func main() {
 
 	// Start server
 	srv := &http.Server{
-		Addr:    ":" + cfg.Port,
+		Addr:    "0.0.0.0:" + cfg.Port,
 		Handler: router,
 	}
 
@@ -89,10 +89,10 @@ func main() {
 	}()
 
 	fmt.Printf("🚀 Food Delivery Server starting on port %s\n", cfg.Port)
-	fmt.Printf("📡 Health check: http://localhost:%s/api/v1/health\n", cfg.Port)
-	fmt.Printf("🔗 API endpoint: http://localhost:%s/api/v1\n", cfg.Port)
-	fmt.Printf("📋 API status: http://localhost:%s/api/v1/status\n", cfg.Port)
-	fmt.Printf("📖 API docs: http://localhost:%s/api/v1/docs\n", cfg.Port)
+	fmt.Printf("📡 Health check: http://0.0.0.0:%s/api/v1/health\n", cfg.Port)
+	fmt.Printf("🔗 API endpoint: http://0.0.0.0:%s/api/v1\n", cfg.Port)
+	fmt.Printf("📋 API status: http://0.0.0.0:%s/api/v1/status\n", cfg.Port)
+	fmt.Printf("📖 API docs: http://0.0.0.0:%s/api/v1/docs\n", cfg.Port)
 	if database == nil {
 		fmt.Printf("⚠️  PostgreSQL: Not connected (limited functionality)\n")
 	} else {

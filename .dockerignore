@@ -4,59 +4,35 @@
 
 # Documentation
 README.md
-*.md
+MONGODB_INTEGRATION.md
 
 # Environment files
 .env
 .env.local
-.env.*.local
+.env.production
+
+# Logs
+logs/
+*.log
 
 # IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
-*.log
+# Build artifacts
+food-delivery
+main
+*.exe
 
 # Test files
 *_test.go
 test/
-tests/
 
-# Build artifacts
-bin/
-dist/
-build/
-
-# Docker files
-Dockerfile*
-docker-compose*
-.dockerignore
-
-# Temporary files
-tmp/
-temp/
-
-# Node modules (if any)
-node_modules/
-
-# Go workspace files
-go.work
-
-# Coverage reports
-coverage.txt
-*.out
-
-# Air live reload
-.air.toml
-
-# Delve debugger
-__debug_bin 
+# Scripts directory (not needed in production)
+scripts/ 
