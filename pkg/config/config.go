@@ -8,6 +8,7 @@ import (
 type Config struct {
 	// Database Configuration
 	DatabaseURL string
+	MongoDBURI  string
 	RedisURL    string
 
 	// JWT Configuration
@@ -90,6 +91,7 @@ func Load() *Config {
 	return &Config{
 		// Database Configuration
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/fooddelivery?sslmode=disable"),
+		MongoDBURI:  getEnv("MONGODB_URI", "mongodb+srv://madhavinternship2024:GDuUTED803LIihgx@cluster0.zpn8u9a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"),
 		RedisURL:    getEnv("REDIS_URL", "redis://localhost:6379"),
 
 		// JWT Configuration

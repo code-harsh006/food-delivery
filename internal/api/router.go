@@ -92,6 +92,9 @@ func (r *APIRouter) SetupRoutes() {
 			admin.Module(r.router, r.db)
 		}
 	}
+
+	// MongoDB routes (setup after main routes to avoid conflicts)
+	r.SetupMongoDBRoutes()
 }
 
 // GetRouter returns the configured router

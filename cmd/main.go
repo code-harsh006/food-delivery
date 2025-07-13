@@ -31,14 +31,14 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize database
+	// Initialize PostgreSQL database
 	database, err := db.Init(cfg.DatabaseURL)
 	if err != nil {
-		log.Printf("⚠️  Database connection failed: %v", err)
-		log.Println("🚀 Starting server without database (limited functionality)")
+		log.Printf("⚠️  PostgreSQL connection failed: %v", err)
+		log.Println("🚀 Starting server without PostgreSQL (limited functionality)")
 		database = nil
 	} else {
-		log.Println("✅ Database connected successfully")
+		log.Println("✅ PostgreSQL connected successfully")
 
 		// Run migrations
 		if err := db.Migrate(database); err != nil {
@@ -49,6 +49,14 @@ func main() {
 		if err := db.SeedData(database); err != nil {
 			log.Printf("⚠️  Failed to seed data: %v", err)
 		}
+	}
+
+	// Initialize MongoDB database
+	if err := db.InitMongoDB(cfg.MongoDBURI); err != nil {
+		log.Printf("⚠️  MongoDB connection failed: %v", err)
+		log.Println("🚀 Starting server without MongoDB (limited functionality)")
+	} else {
+		log.Println("✅ MongoDB connected successfully")
 	}
 
 	// Initialize Gin router
@@ -86,9 +94,14 @@ func main() {
 	fmt.Printf("📋 API status: http://localhost:%s/api/v1/status\n", cfg.Port)
 	fmt.Printf("📖 API docs: http://localhost:%s/api/v1/docs\n", cfg.Port)
 	if database == nil {
-		fmt.Printf("⚠️  Database: Not connected (limited functionality)\n")
+		fmt.Printf("⚠️  PostgreSQL: Not connected (limited functionality)\n")
 	} else {
-		fmt.Printf("✅ Database: Connected\n")
+		fmt.Printf("✅ PostgreSQL: Connected\n")
+	}
+	if db.GetMongoDB() == nil {
+		fmt.Printf("⚠️  MongoDB: Not connected (limited functionality)\n")
+	} else {
+		fmt.Printf("✅ MongoDB: Connected\n")
 	}
 
 	// Wait for interrupt signal to gracefully shutdown the server
