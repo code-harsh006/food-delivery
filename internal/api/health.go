@@ -91,6 +91,23 @@ func (h *HealthHandler) LivenessCheck(c *gin.Context) {
 	})
 }
 
+// StatusCheck provides API status information
+func (h *HealthHandler) StatusCheck(c *gin.Context) {
+	response.Success(c, gin.H{
+		"status":    "running",
+		"message":   "Food Delivery API is operational",
+		"timestamp": time.Now().Format(time.RFC3339),
+		"version":   "1.0.0",
+		"endpoints": gin.H{
+			"health":          "/api/v1/health",
+			"health_detailed": "/api/v1/health/detailed",
+			"ready":           "/api/v1/health/ready",
+			"live":            "/api/v1/health/live",
+			"status":          "/api/v1/status",
+		},
+	})
+}
+
 // SetupHealthRoutes sets up health check routes
 func (h *HealthHandler) SetupHealthRoutes(router *gin.RouterGroup) {
 	health := router.Group("/health")
@@ -100,4 +117,7 @@ func (h *HealthHandler) SetupHealthRoutes(router *gin.RouterGroup) {
 		health.GET("/ready", h.ReadinessCheck)
 		health.GET("/live", h.LivenessCheck)
 	}
+
+	// Add status endpoint
+	router.GET("/status", h.StatusCheck)
 }
