@@ -150,3 +150,204 @@ If you encounter issues:
 2. Verify environment variables
 3. Test locally with the same configuration
 4. Check MongoDB Atlas connection 
+
+---
+
+## Step-by-Step Fixes
+
+### 1. PostgreSQL: Connection Refused
+
+- **If you do NOT need PostgreSQL:**  
+  Remove or comment out all PostgreSQL-related code and configuration. Make sure your app does not try to connect to PostgreSQL if you only want to use MongoDB.
+
+- **If you DO need PostgreSQL:**  
+  - Make sure PostgreSQL is running locally or update your `DATABASE_URL` to point to a running instance (local or cloud).
+  - Check your credentials and that the user/database exist.
+  - If running locally, start PostgreSQL and ensure it listens on the correct port.
+
+### 2. MongoDB: TLS Internal Error
+
+This is a common issue with MongoDB Atlas and Go drivers. Here’s how to fix it:
+
+- **Check your MongoDB URI:**  
+  Make sure it uses the correct format and credentials.  
+  Example:  
+  ```
+  mongodb+srv://<username>:<password>@cluster0.zpn8u9a.mongodb.net/food?retryWrites=true&w=majority
+  ```
+
+- **IP Whitelist:**  
+  In MongoDB Atlas, make sure your current IP (or 0.0.0.0/0 for testing) is whitelisted.
+
+- **TLS/SSL Support:**  
+  - The Go MongoDB driver requires valid certificates. If you are behind a proxy or have custom CA, you may need to set `tlsInsecure=true` for testing (not for production).
+  - Try adding `&tlsInsecure=true` to your connection string for local testing:
+    ```
+    mongodb+srv://<username>:<password>@cluster0.zpn8u9a.mongodb.net/food?retryWrites=true&w=majority&tlsInsecure=true
+    ```
+  - If this works, the issue is with certificate validation (e.g., missing CA certs on your machine).
+
+- **Firewall/Network:**  
+  - Ensure your network allows outbound connections to MongoDB Atlas (ports 27017+).
+  - Some corporate or university networks block these ports.
+
+---
+
+## Code Improvements
+
+- **Graceful Fallback:**  
+  Your code already starts with "limited functionality" if a DB is not connected. Consider logging more details and providing a health endpoint that reports which DBs are up.
+
+- **Environment Variable Checks:**  
+  Before starting, check if all required environment variables are set. If not, log a clear error and exit.
+
+- **Configuration File:**  
+  Use a config file or `.env` for local development, and document all required variables.
+
+---
+
+## Next Steps
+
+1. **Decide if you need PostgreSQL.**  
+   - If not, remove its usage from your codebase and configs.
+
+2. **Fix MongoDB Atlas connection:**  
+   - Try `&tlsInsecure=true` in your URI for local testing.
+   - Check your IP whitelist in Atlas.
+   - Make sure your credentials are correct.
+
+3. **Test Locally:**  
+   - Use the same environment variables as in production.
+   - Run your app and check logs for improved error messages.
+
+---
+
+Would you like me to:
+- Update your code to skip PostgreSQL if not configured?
+- Add better error messages and health reporting?
+- Show you exactly where to add `tlsInsecure=true` in your MongoDB connection code?
+- Refactor your config loading for better local/production separation?
+
+Let me know which improvements you want, and I’ll make the code changes for you! 
+
+---
+
+## 1. Production-Ready Go Server Example
+
+```go
+// main.go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+)
+
+func main() {
+	// Get PORT from environment, fallback to 8080
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	addr := "0.0.0.0:" + port
+
+	// Health check endpoint
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy"}`))
+	})
+
+	// Example root endpoint
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Food Delivery API is running!")
+	})
+
+	log.Printf("🚀 Server starting on %s", addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
+		log.Fatalf("❌ Server failed: %v", err)
+	}
+}
+```
+
+---
+
+## 2. Render.com Requirements Explained
+
+- **PORT Environment Variable:**  
+  Render automatically sets the `PORT` environment variable for your service. Your app **must** listen on this port, or Render will not detect an open port and will fail deployment.
+
+- **Bind to 0.0.0.0:**  
+  Binding to `0.0.0.0` ensures your app is accessible from outside the container (i.e., by Render’s load balancer). Binding to `localhost` or `127.0.0.1` will make your app unreachable.
+
+- **render.yaml Example (optional):**
+  ```yaml
+  services:
+    - type: web
+      name: food-delivery-api
+      env: go
+      buildCommand: go build -o food-delivery cmd/main.go
+      startCommand: ./food-delivery
+      envVars:
+        - key: ENVIRONMENT
+          value: production
+        - key: MONGODB_URI
+          sync: false
+  ```
+
+---
+
+## 3. Production Dockerfile (Multi-Stage)
+
+```dockerfile
+# Build stage
+FROM golang:1.22-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o food-delivery ./cmd/main.go
+
+# Run stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=builder /app/food-delivery .
+EXPOSE 8080
+CMD ["./food-delivery"]
+```
+- **Note:** Render will still inject the `PORT` variable. Your Go code must use it (see above).
+
+---
+
+## 4. Troubleshooting Checklist
+
+- **No open ports detected:**  
+  - Ensure your Go app uses `os.Getenv("PORT")` and binds to `0.0.0.0:<PORT>`.
+  - Check logs in Render dashboard for startup errors.
+
+- **Check if port is open:**  
+  - Log the address your server is listening on.
+  - Use `/health` endpoint to verify service is running.
+
+- **Verify environment variables:**  
+  - In Render dashboard, check "Environment" tab for all required variables.
+  - Use `log.Printf` to print out critical env vars at startup (avoid printing secrets).
+
+- **Debugging connection timeouts:**  
+  - Ensure your database/network dependencies are accessible from Render.
+  - Check security groups, firewalls, and connection strings.
+  - Use Render’s shell (if available) to test connectivity.
+
+---
+
+## Copy-Paste Summary
+
+- Use the Go server code above.
+- Ensure you use the `PORT` env variable and bind to `0.0.0.0`.
+- Use the Dockerfile if deploying with Docker.
+- Check Render logs for errors and confirm `/health` is reachable.
+
+Let me know if you want a more advanced example (e.g., with MongoDB integration or graceful shutdown)! 
