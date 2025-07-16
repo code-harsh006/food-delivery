@@ -14,17 +14,7 @@ services:
       - "8080:8080"
       - "2345:2345" # Delve debugger
 
-  # Development database with data persistence
-  postgres:
-    environment:
-      - POSTGRES_DB=fooddelivery_dev
-      - POSTGRES_USER=fooddelivery
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
 
   # Redis with persistence
   redis:
@@ -70,7 +60,6 @@ services:
       - food-delivery-network
 
 volumes:
-  postgres_dev_data:
   redis_dev_data:
   minio_data:
   go-mod-cache: 

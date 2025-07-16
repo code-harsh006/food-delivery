@@ -11,7 +11,7 @@ A comprehensive Go-based backend API for food delivery services with support for
 - 📧 **Email & SMS** - Twilio SMS and SMTP email notifications
 - 🔔 **Push Notifications** - Firebase Cloud Messaging
 - 📁 **File Upload** - AWS S3 compatible storage
-- 🗄️ **Database** - PostgreSQL with Redis caching
+- 🗄️ **Database** - MongoDB with Redis caching
 - 📊 **Monitoring** - Prometheus and Grafana
 - 🐳 **Docker** - Multi-stage builds for dev and production
 
@@ -19,7 +19,7 @@ A comprehensive Go-based backend API for food delivery services with support for
 
 - **Language**: Go 1.21+
 - **Framework**: Gin (HTTP router)
-- **Database**: PostgreSQL
+- **Database**: MongoDB
 - **Cache**: Redis
 - **ORM**: GORM
 - **Container**: Docker & Docker Compose
@@ -72,7 +72,7 @@ A comprehensive Go-based backend API for food delivery services with support for
 Copy `config.env.example` to `.env` and configure the following:
 
 ### Required Variables
-- `DATABASE_URL` - PostgreSQL connection string
+- `MONGODB_URI` - MongoDB connection string
 - `REDIS_URL` - Redis connection string
 - `JWT_SECRET` - Secret key for JWT tokens
 

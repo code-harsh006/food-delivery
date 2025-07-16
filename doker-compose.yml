@@ -7,7 +7,6 @@ services:
       - "8080:8080"
     environment:
       # Database Configuration
-      - DATABASE_URL=postgres://fooddelivery:password@postgres:5432/fooddelivery?sslmode=disable
       - REDIS_URL=redis://redis:6379
       
       # JWT Configuration
@@ -85,7 +84,6 @@ services:
       - SENTRY_DSN=your_sentry_dsn
       - NEW_RELIC_LICENSE_KEY=your_new_relic_key
     depends_on:
-      - postgres
       - redis
     volumes:
       - .:/app
@@ -94,19 +92,7 @@ services:
       - food-delivery-network
     restart: unless-stopped
 
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=fooddelivery
-      - POSTGRES_USER=fooddelivery
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - food-delivery-network
-    restart: unless-stopped
+
 
   redis:
     image: redis:7-alpine
@@ -118,15 +104,7 @@ services:
       - food-delivery-network
     restart: unless-stopped
 
-  adminer:
-    image: adminer
-    ports:
-      - "8081:8080"
-    depends_on:
-      - postgres
-    networks:
-      - food-delivery-network
-    restart: unless-stopped
+
 
   # Optional: Add Redis Commander for Redis management
   redis-commander:
@@ -142,7 +120,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
   redis_data:
 
 networks:

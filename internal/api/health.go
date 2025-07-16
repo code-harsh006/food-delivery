@@ -6,19 +6,14 @@ import (
 
 	"github.com/code-harsh006/food-delivery/pkg/response"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // HealthHandler handles health check and system monitoring endpoints
-type HealthHandler struct {
-	db *gorm.DB
-}
+type HealthHandler struct{}
 
 // NewHealthHandler creates a new HealthHandler instance
-func NewHealthHandler(db *gorm.DB) *HealthHandler {
-	return &HealthHandler{
-		db: db,
-	}
+func NewHealthHandler() *HealthHandler {
+	return &HealthHandler{}
 }
 
 // HealthCheck performs a basic health check
@@ -38,37 +33,6 @@ func (h *HealthHandler) DetailedHealthCheck(c *gin.Context) {
 		"timestamp": time.Now().Format(time.RFC3339),
 		"service":   "food-delivery-api",
 		"checks":    make(map[string]interface{}),
-	}
-
-	// Check database connectivity
-	if h.db != nil {
-		sqlDB, err := h.db.DB()
-		if err != nil {
-			healthStatus["checks"].(map[string]interface{})["database"] = gin.H{
-				"status":  "error",
-				"message": "Failed to get database instance",
-				"error":   err.Error(),
-			}
-		} else {
-			// Ping the database
-			if err := sqlDB.Ping(); err != nil {
-				healthStatus["checks"].(map[string]interface{})["database"] = gin.H{
-					"status":  "error",
-					"message": "Database ping failed",
-					"error":   err.Error(),
-				}
-			} else {
-				healthStatus["checks"].(map[string]interface{})["database"] = gin.H{
-					"status":  "ok",
-					"message": "Database is reachable",
-				}
-			}
-		}
-	} else {
-		healthStatus["checks"].(map[string]interface{})["database"] = gin.H{
-			"status":  "unknown",
-			"message": "Database not initialized",
-		}
 	}
 
 	// Check API responsiveness
@@ -114,33 +78,7 @@ func (h *HealthHandler) ReadinessCheck(c *gin.Context) {
 		"service":   "food-delivery-api",
 	}
 
-	// Check if database is available
-	if h.db != nil {
-		sqlDB, err := h.db.DB()
-		if err != nil {
-			readiness["ready"] = false
-			readiness["database"] = "not_ready"
-		} else {
-			if err := sqlDB.Ping(); err != nil {
-				readiness["ready"] = false
-				readiness["database"] = "not_ready"
-			} else {
-				readiness["database"] = "ready"
-			}
-		}
-	} else {
-		readiness["database"] = "not_initialized"
-	}
-
-	if readiness["ready"].(bool) {
-		response.Success(c, readiness)
-	} else {
-		c.JSON(http.StatusServiceUnavailable, gin.H{
-			"success": false,
-			"error":   "Service not ready",
-			"data":    readiness,
-		})
-	}
+	response.Success(c, readiness)
 }
 
 // LivenessCheck checks if the service is alive

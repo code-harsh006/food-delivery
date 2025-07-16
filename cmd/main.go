@@ -31,26 +31,6 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize PostgreSQL database
-	database, err := db.Init(cfg.DatabaseURL)
-	if err != nil {
-		log.Printf("⚠️  PostgreSQL connection failed: %v", err)
-		log.Println("🚀 Starting server without PostgreSQL (limited functionality)")
-		database = nil
-	} else {
-		log.Println("✅ PostgreSQL connected successfully")
-
-		// Run migrations
-		if err := db.Migrate(database); err != nil {
-			log.Printf("⚠️  Failed to run migrations: %v", err)
-		}
-
-		// Seed data
-		if err := db.SeedData(database); err != nil {
-			log.Printf("⚠️  Failed to seed data: %v", err)
-		}
-	}
-
 	// Initialize MongoDB database
 	if err := db.InitMongoDB(cfg.MongoDBURI); err != nil {
 		log.Printf("⚠️  MongoDB connection failed: %v", err)
@@ -70,7 +50,7 @@ func main() {
 	router.Use(middleware.CORS())
 
 	// Initialize API router
-	apiRouter := api.NewAPIRouter(router, database)
+	apiRouter := api.NewAPIRouter(router)
 
 	// Setup all API routes
 	apiRouter.SetupRoutes()
@@ -93,11 +73,6 @@ func main() {
 	fmt.Printf("🔗 API endpoint: http://0.0.0.0:%s/api/v1\n", cfg.Port)
 	fmt.Printf("📋 API status: http://0.0.0.0:%s/api/v1/status\n", cfg.Port)
 	fmt.Printf("📖 API docs: http://0.0.0.0:%s/api/v1/docs\n", cfg.Port)
-	if database == nil {
-		fmt.Printf("⚠️  PostgreSQL: Not connected (limited functionality)\n")
-	} else {
-		fmt.Printf("✅ PostgreSQL: Connected\n")
-	}
 	if db.GetMongoDB() == nil {
 		fmt.Printf("⚠️  MongoDB: Not connected (limited functionality)\n")
 	} else {

@@ -12,7 +12,6 @@ services:
       - ENVIRONMENT=production
       - LOG_LEVEL=info
     depends_on:
-      - postgres
       - redis
     volumes:
       - ./logs:/app/logs
@@ -28,25 +27,7 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=fooddelivery
-      - POSTGRES_USER=fooddelivery
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_prod_data:/var/lib/postgresql/data
-    networks:
-      - food-delivery-network
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
+
 
   redis:
     image: redis:7-alpine
@@ -115,7 +96,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_prod_data:
   redis_prod_data:
   prometheus_data:
   grafana_data:

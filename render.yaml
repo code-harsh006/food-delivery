@@ -12,8 +12,6 @@ services:
         value: production
       - key: MONGODB_URI
         value: mongodb+srv://madhavinternship2024:GDuUTED803LIihgx@cluster0.zpn8u9a.mongodb.net/food?retryWrites=true&w=majority
-      - key: DATABASE_URL
-        value: postgres://user:password@localhost/fooddelivery?sslmode=disable
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGIN
@@ -21,10 +19,7 @@ services:
     healthCheckPath: /health
     autoDeploy: true
 
-databases:
-  - name: food-delivery-db
-    databaseName: fooddelivery
-    user: fooddelivery
+
 
 services:
   - type: redis

@@ -3,21 +3,16 @@ package api
 import (
 	"net/http"
 
-	"github.com/code-harsh006/food-delivery/internal/auth"
 	"github.com/code-harsh006/food-delivery/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
 // AuthHandler handles authentication-related API endpoints
-type AuthHandler struct {
-	authModule *auth.Module
-}
+type AuthHandler struct{}
 
 // NewAuthHandler creates a new AuthHandler instance
-func NewAuthHandler(authModule *auth.Module) *AuthHandler {
-	return &AuthHandler{
-		authModule: authModule,
-	}
+func NewAuthHandler() *AuthHandler {
+	return &AuthHandler{}
 }
 
 // GetProfile returns the current user's profile
@@ -36,10 +31,7 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 
 // SetupAuthRoutes sets up authentication routes
 func (h *AuthHandler) SetupAuthRoutes(router *gin.RouterGroup) {
-	// Use the existing auth module's SetupRoutes method
-	h.authModule.SetupRoutes(router)
-
-	// Add additional auth-related routes
+	// Add auth-related routes
 	auth := router.Group("/auth")
 	{
 		auth.GET("/profile", h.GetProfile)

@@ -7,9 +7,8 @@ import (
 
 type Config struct {
 	// Database Configuration
-	DatabaseURL string
-	MongoDBURI  string
-	RedisURL    string
+	MongoDBURI string
+	RedisURL   string
 
 	// JWT Configuration
 	JWTSecret string
@@ -90,9 +89,8 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		// Database Configuration
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://user:password@localhost/fooddelivery?sslmode=disable"),
-		MongoDBURI:  getEnv("MONGODB_URI", "mongodb+srv://madhavinternship2024:GDuUTED803LIihgx@cluster0.zpn8u9a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"),
-		RedisURL:    getEnv("REDIS_URL", "redis://localhost:6379"),
+		MongoDBURI: getEnv("MONGODB_URI", "mongodb+srv://madhavjadav638:GDuUTED803LIihgx@cluster0.jd56d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tlsInsecure=true"),
+		RedisURL:   getEnv("REDIS_URL", "redis://localhost:6379"),
 
 		// JWT Configuration
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
@@ -146,7 +144,7 @@ func Load() *Config {
 		AWSSecretAccessKey: getEnv("AWS_SECRET_ACCESS_KEY", ""),
 		AWSRegion:          getEnv("AWS_REGION", "us-east-1"),
 		AWSS3Bucket:        getEnv("AWS_S3_BUCKET", ""),
-		MaxFileSize:        getEnvAsInt64("MAX_FILE_SIZE", 5242880), // 5MB
+		MaxFileSize:        getEnvAsInt64("MAX_FILE_SIZE", 5242880),
 
 		// Rate Limiting
 		RateLimitRequests: getEnvAsInt("RATE_LIMIT_REQUESTS", 100),
@@ -158,7 +156,7 @@ func Load() *Config {
 
 		// Security
 		CORSOrigin:    getEnv("CORS_ORIGIN", "http://localhost:3000"),
-		SessionSecret: getEnv("SESSION_SECRET", "your_session_secret"),
+		SessionSecret: getEnv("SESSION_SECRET", "your-session-secret"),
 		BcryptCost:    getEnvAsInt("BCRYPT_COST", 12),
 
 		// Cache Configuration
