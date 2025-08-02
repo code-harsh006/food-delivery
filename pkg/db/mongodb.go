@@ -16,7 +16,7 @@ var MongoClient *mongo.Client
 var MongoDB *mongo.Database
 
 // InitMongoDB initializes the MongoDB connection
-func InitMongoDB(uri string) error {
+func InitMongoDB(uri string, isProduction bool) error {
 	if uri == "" {
 		uri = "mongodb+srv://madhavjadav638:GDuUTED803LIihgx@cluster0.jd56d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tlsInsecure=true"
 	}
@@ -42,8 +42,12 @@ func InitMongoDB(uri string) error {
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
-		log.Printf("❌ Failed to create MongoDB client: %v", err)
-		return fmt.Errorf("failed to create MongoDB client: %w", err)
+		if isProduction {
+			log.Fatal("❌ MongoDB connection failed:", err)
+		} else {
+			log.Printf("❌ Failed to create MongoDB client: %v", err)
+			return fmt.Errorf("failed to create MongoDB client: %w", err)
+		}
 	}
 
 	// Ping to verify connection with retry and better error handling
@@ -80,15 +84,19 @@ func InitMongoDB(uri string) error {
 	}
 
 	if pingErr != nil {
-		log.Printf("❌ Failed to ping MongoDB after 3 attempts: %v", pingErr)
-		log.Println("⚠️  MongoDB connection failed, but continuing without it")
-		log.Println("💡 To fix this:")
-		log.Println("   1. Go to MongoDB Atlas → Database Access")
-		log.Println("   2. Create/edit user 'madhavjadav638'")
-		log.Println("   3. Set password to 'GDuUTED803LIihgx'")
-		log.Println("   4. Set privileges to 'Read and write to any database'")
-		log.Println("   5. Wait 1-2 minutes after changes")
-		return nil
+		if isProduction {
+			log.Fatal("❌ Failed to ping MongoDB after 3 attempts:", pingErr)
+		} else {
+			log.Printf("❌ Failed to ping MongoDB after 3 attempts: %v", pingErr)
+			log.Println("⚠️  MongoDB connection failed, but continuing without it")
+			log.Println("💡 To fix this:")
+			log.Println("   1. Go to MongoDB Atlas → Database Access")
+			log.Println("   2. Create/edit user 'madhavjadav638'")
+			log.Println("   3. Set password to 'GDuUTED803LIihgx'")
+			log.Println("   4. Set privileges to 'Read and write to any database'")
+			log.Println("   5. Wait 1-2 minutes after changes")
+			return nil
+		}
 	}
 
 	MongoClient = client

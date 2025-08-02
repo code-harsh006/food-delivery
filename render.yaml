@@ -6,8 +6,6 @@ services:
     buildCommand: go build -o food-delivery cmd/main.go
     startCommand: ./food-delivery
     envVars:
-      - key: PORT
-        value: 8080
       - key: ENVIRONMENT
         value: production
       - key: MONGODB_URI

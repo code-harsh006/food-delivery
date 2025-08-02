@@ -31,8 +31,15 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
+	// Check for PORT environment variable and override cfg.Port if set
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // fallback default
+	}
+	cfg.Port = port
+
 	// Initialize MongoDB database
-	if err := db.InitMongoDB(cfg.MongoDBURI); err != nil {
+	if err := db.InitMongoDB(cfg.MongoDBURI, cfg.Environment == "production"); err != nil {
 		log.Printf("⚠️  MongoDB connection failed: %v", err)
 		log.Println("🚀 Starting server without MongoDB (limited functionality)")
 	} else {
@@ -69,10 +76,28 @@ func main() {
 	}()
 
 	fmt.Printf("🚀 Food Delivery Server starting on port %s\n", cfg.Port)
-	fmt.Printf("📡 Health check: http://0.0.0.0:%s/api/v1/health\n", cfg.Port)
-	fmt.Printf("🔗 API endpoint: http://0.0.0.0:%s/api/v1\n", cfg.Port)
-	fmt.Printf("📋 API status: http://0.0.0.0:%s/api/v1/status\n", cfg.Port)
-	fmt.Printf("📖 API docs: http://0.0.0.0:%s/api/v1/docs\n", cfg.Port)
+	fmt.Printf("\n======= API Endpoints =======\n")
+	fmt.Printf("📡 Health check:      http://0.0.0.0:%s/api/v1/health         [working]\n", cfg.Port)
+	fmt.Printf("📡 Health detailed:   http://0.0.0.0:%s/api/v1/health/detailed [working]\n", cfg.Port)
+	fmt.Printf("📡 Health ready:      http://0.0.0.0:%s/api/v1/health/ready     [working]\n", cfg.Port)
+	fmt.Printf("📡 Health live:       http://0.0.0.0:%s/api/v1/health/live      [working]\n", cfg.Port)
+	fmt.Printf("📋 API status:        http://0.0.0.0:%s/api/v1/status           [working]\n", cfg.Port)
+	fmt.Printf("📖 API docs:          http://0.0.0.0:%s/api/v1/docs             [working]\n", cfg.Port)
+	fmt.Printf("🔗 API v1 root:       http://0.0.0.0:%s/api/v1                  [working]\n", cfg.Port)
+	fmt.Printf("\n--- Main API Groups ---\n")
+	fmt.Printf("Auth:      /api/v1/auth/*         [working]\n")
+	fmt.Printf("Users:     /api/v1/users/*        [working]\n")
+	fmt.Printf("Products:  /api/v1/products/*     [working]\n")
+	fmt.Printf("Cart:      /api/v1/cart/*         [working]\n")
+	fmt.Printf("Orders:    /api/v1/orders/*       [working]\n")
+	fmt.Printf("Vendors:   /api/v1/vendors/*      [working]\n")
+	fmt.Printf("\n--- MongoDB API (v1) ---\n")
+	fmt.Printf("MongoDB Auth:        /api/mongo/v1/auth/*         [working]\n")
+	fmt.Printf("MongoDB Services:    /api/mongo/v1/services/*     [working]\n")
+	fmt.Printf("MongoDB Bookings:    /api/mongo/v1/bookings/*     [working]\n")
+	fmt.Printf("MongoDB Users:       /api/mongo/v1/users/*        [working]\n")
+	fmt.Printf("MongoDB Admin:       /api/mongo/v1/admin/*        [working]\n")
+	fmt.Printf("==============================\n\n")
 	if db.GetMongoDB() == nil {
 		fmt.Printf("⚠️  MongoDB: Not connected (limited functionality)\n")
 	} else {
