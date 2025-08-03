@@ -20,6 +20,8 @@ import (
 )
 
 func main() {
+	fmt.Println("Starting Food Delivery Server...")
+
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -27,9 +29,11 @@ func main() {
 
 	// Initialize logger
 	logger.Init()
+	fmt.Println("Logger initialized")
 
 	// Load configuration
 	cfg := config.Load()
+	fmt.Println("Configuration loaded")
 
 	// Check for PORT environment variable and override cfg.Port if set
 	port := os.Getenv("PORT")
@@ -37,6 +41,7 @@ func main() {
 		port = "8080" // fallback default
 	}
 	cfg.Port = port
+	fmt.Printf("Using port: %s\n", cfg.Port)
 
 	// Initialize MongoDB database
 	if err := db.InitMongoDB(cfg.MongoDBURI, cfg.Environment == "production"); err != nil {
@@ -50,17 +55,21 @@ func main() {
 	if cfg.Environment == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	fmt.Println("Initializing Gin router")
 
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.Logger())
 	router.Use(middleware.CORS())
+	fmt.Println("Router middleware configured")
 
 	// Initialize API router
 	apiRouter := api.NewAPIRouter(router)
+	fmt.Println("API router initialized")
 
 	// Setup all API routes
 	apiRouter.SetupRoutes()
+	fmt.Println("API routes configured")
 
 	// Start server
 	srv := &http.Server{
@@ -70,6 +79,7 @@ func main() {
 
 	// Graceful shutdown
 	go func() {
+		fmt.Printf("🚀 Starting server on port %s\n", cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to start server: %v", err)
 		}

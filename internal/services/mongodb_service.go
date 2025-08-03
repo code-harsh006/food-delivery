@@ -19,12 +19,22 @@ import (
 
 // GetServices returns all active services
 func GetServices(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	var services []models.Service
 
 	// Get query parameters for filtering
 	category := c.Query("category")
 
-	collection := db.GetMongoDB().Collection("services")
+	collection := mongoDB.Collection("services")
 	filter := bson.M{"is_active": true}
 	if category != "" {
 		filter["category"] = category
@@ -50,6 +60,16 @@ func GetServices(c *gin.Context) {
 
 // GetServiceByID returns a specific service by ID
 func GetServiceByID(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	idParam := c.Param("id")
 	serviceID, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
@@ -58,7 +78,7 @@ func GetServiceByID(c *gin.Context) {
 	}
 
 	var service models.Service
-	collection := db.GetMongoDB().Collection("services")
+	collection := mongoDB.Collection("services")
 	err = collection.FindOne(context.Background(), bson.M{"_id": serviceID, "is_active": true}).Decode(&service)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -74,7 +94,17 @@ func GetServiceByID(c *gin.Context) {
 
 // GetServiceCategories returns all service categories
 func GetServiceCategories(c *gin.Context) {
-	collection := db.GetMongoDB().Collection("services")
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
+	collection := mongoDB.Collection("services")
 
 	// Use aggregation to get distinct categories
 	pipeline := []bson.M{
@@ -108,6 +138,16 @@ func GetServiceCategories(c *gin.Context) {
 
 // SearchServices searches services by name or description
 func SearchServices(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	query := c.Query("q")
 	if query == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Search query is required"})
@@ -115,7 +155,7 @@ func SearchServices(c *gin.Context) {
 	}
 
 	var services []models.Service
-	collection := db.GetMongoDB().Collection("services")
+	collection := mongoDB.Collection("services")
 
 	// Create a text search filter
 	filter := bson.M{

@@ -15,6 +15,16 @@ import (
 
 // GetUserProfile returns user profile information
 func GetUserProfile(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	userID := getUserIDFromContext(c)
 	if userID.IsZero() {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
@@ -22,7 +32,7 @@ func GetUserProfile(c *gin.Context) {
 	}
 
 	var user models.User
-	collection := db.GetMongoDB().Collection("users")
+	collection := mongoDB.Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -38,6 +48,16 @@ func GetUserProfile(c *gin.Context) {
 
 // UpdateUserProfile updates user profile information
 func UpdateUserProfile(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	userID := getUserIDFromContext(c)
 	if userID.IsZero() {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
@@ -45,7 +65,7 @@ func UpdateUserProfile(c *gin.Context) {
 	}
 
 	var user models.User
-	collection := db.GetMongoDB().Collection("users")
+	collection := mongoDB.Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -80,6 +100,16 @@ func UpdateUserProfile(c *gin.Context) {
 
 // GetUserNotifications returns user notifications
 func GetUserNotifications(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	userID := getUserIDFromContext(c)
 	if userID.IsZero() {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
@@ -87,7 +117,7 @@ func GetUserNotifications(c *gin.Context) {
 	}
 
 	var notifications []models.Notification
-	collection := db.GetMongoDB().Collection("notifications")
+	collection := mongoDB.Collection("notifications")
 	cursor, err := collection.Find(context.Background(), bson.M{"user_id": userID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})

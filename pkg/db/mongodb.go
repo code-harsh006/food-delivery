@@ -18,7 +18,8 @@ var MongoDB *mongo.Database
 // InitMongoDB initializes the MongoDB connection
 func InitMongoDB(uri string, isProduction bool) error {
 	if uri == "" {
-		uri = "mongodb+srv://madhavjadav638:GDuUTED803LIihgx@cluster0.jd56d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0&tlsInsecure=true"
+		// Use a more reliable connection string with proper TLS configuration
+		uri = "mongodb+srv://madhavjadav638:GDuUTED803LIihgx@cluster0.jd56d.mongodb.net/food?retryWrites=true&w=majority&appName=Cluster0&tls=true&tlsAllowInvalidCertificates=true"
 	}
 
 	// Log the URI being used (without password for security)
@@ -28,13 +29,15 @@ func InitMongoDB(uri string, isProduction bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Configure client options with TLS settings
+	// Configure client options with more reliable settings
 	clientOptions := options.Client().ApplyURI(uri)
-	clientOptions.SetServerSelectionTimeout(15 * time.Second)
-	clientOptions.SetSocketTimeout(15 * time.Second)
-	clientOptions.SetConnectTimeout(15 * time.Second)
+	clientOptions.SetServerSelectionTimeout(30 * time.Second)
+	clientOptions.SetSocketTimeout(30 * time.Second)
+	clientOptions.SetConnectTimeout(30 * time.Second)
+	clientOptions.SetMaxPoolSize(10)
+	clientOptions.SetMinPoolSize(1)
 
-	// Configure TLS to be more permissive
+	// Configure TLS to be more permissive for development
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 	}
@@ -53,7 +56,7 @@ func InitMongoDB(uri string, isProduction bool) error {
 	// Ping to verify connection with retry and better error handling
 	var pingErr error
 	for i := 0; i < 3; i++ {
-		pingCtx, pingCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		pingCtx, pingCancel := context.WithTimeout(context.Background(), 15*time.Second)
 		pingErr = client.Ping(pingCtx, nil)
 		pingCancel()
 

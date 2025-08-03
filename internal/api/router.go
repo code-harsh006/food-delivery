@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/code-harsh006/food-delivery/internal/notification"
@@ -48,9 +49,11 @@ func (r *APIRouter) SetupRoutes() {
 	}
 
 	// MongoDB routes (setup after main routes to avoid conflicts)
+	fmt.Println("Setting up MongoDB routes...")
 	r.SetupMongoDBRoutes()
+	fmt.Println("MongoDB routes setup completed")
 
-	// 404 handler for unmatched routes
+	// 404 handler for unmatched routes (must be last)
 	r.router.NoRoute(r.notFoundHandler)
 }
 

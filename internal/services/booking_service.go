@@ -15,6 +15,16 @@ import (
 
 // CreateBooking handles booking creation
 func CreateBooking(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	var req models.CreateBookingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -37,7 +47,7 @@ func CreateBooking(c *gin.Context) {
 
 	// Verify service exists
 	var service models.Service
-	serviceCollection := db.GetMongoDB().Collection("services")
+	serviceCollection := mongoDB.Collection("services")
 	err = serviceCollection.FindOne(context.Background(), bson.M{"_id": serviceID, "is_active": true}).Decode(&service)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -75,7 +85,7 @@ func CreateBooking(c *gin.Context) {
 		UpdatedAt:       time.Now(),
 	}
 
-	bookingCollection := db.GetMongoDB().Collection("bookings")
+	bookingCollection := mongoDB.Collection("bookings")
 	result, err := bookingCollection.InsertOne(context.Background(), booking)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create booking"})
@@ -92,7 +102,7 @@ func CreateBooking(c *gin.Context) {
 		UpdatedBy: "system",
 		CreatedAt: time.Now(),
 	}
-	statusCollection := db.GetMongoDB().Collection("booking_statuses")
+	statusCollection := mongoDB.Collection("booking_statuses")
 	statusCollection.InsertOne(context.Background(), status)
 
 	// Send notification to user
@@ -103,7 +113,7 @@ func CreateBooking(c *gin.Context) {
 		Type:      "booking",
 		CreatedAt: time.Now(),
 	}
-	notificationCollection := db.GetMongoDB().Collection("notifications")
+	notificationCollection := mongoDB.Collection("notifications")
 	notificationCollection.InsertOne(context.Background(), notification)
 
 	c.JSON(http.StatusCreated, gin.H{
