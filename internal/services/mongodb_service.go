@@ -11,6 +11,7 @@ import (
 
 	"github.com/code-harsh006/food-delivery/internal/models"
 	"github.com/code-harsh006/food-delivery/pkg/db"
+	"github.com/code-harsh006/food-delivery/pkg/middleware"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -187,6 +188,16 @@ func SearchServices(c *gin.Context) {
 
 // Register handles user registration
 func Register(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -195,7 +206,7 @@ func Register(c *gin.Context) {
 
 	// Check if user already exists
 	var existingUser models.User
-	collection := db.GetMongoDB().Collection("users")
+	collection := mongoDB.Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"email": req.Email}).Decode(&existingUser)
 	if err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
@@ -236,6 +247,16 @@ func Register(c *gin.Context) {
 
 // Login handles user login
 func Login(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -244,7 +265,7 @@ func Login(c *gin.Context) {
 
 	// Check if user exists
 	var user models.User
-	collection := db.GetMongoDB().Collection("users")
+	collection := mongoDB.Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -255,7 +276,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate and send OTP for login
+	// Generate OTP for login
 	if err := generateAndSendOTP(user.ID, user.Email, "login"); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send OTP"})
 		return
@@ -269,6 +290,16 @@ func Login(c *gin.Context) {
 
 // VerifyOTP handles OTP verification
 func VerifyOTP(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	var req models.VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -277,7 +308,7 @@ func VerifyOTP(c *gin.Context) {
 
 	// Find user
 	var user models.User
-	userCollection := db.GetMongoDB().Collection("users")
+	userCollection := mongoDB.Collection("users")
 	err := userCollection.FindOne(context.Background(), bson.M{"email": req.Email}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -286,7 +317,7 @@ func VerifyOTP(c *gin.Context) {
 
 	// Verify OTP
 	var otp models.OTP
-	otpCollection := db.GetMongoDB().Collection("otps")
+	otpCollection := mongoDB.Collection("otps")
 	err = otpCollection.FindOne(context.Background(), bson.M{
 		"user_id":    user.ID,
 		"code":       req.Code,
@@ -304,27 +335,34 @@ func VerifyOTP(c *gin.Context) {
 	// Mark user as verified if it's registration OTP
 	if otp.Purpose == "registration" {
 		userCollection.UpdateOne(context.Background(), bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"is_verified": true}})
-		user.IsVerified = true
 	}
 
-	// Generate session token (simplified - in production use JWT)
-	sessionToken := generateSessionToken()
+	// Generate JWT token
+	token, err := middleware.GenerateToken(0, user.Email, "user") // Using 0 as placeholder for userID
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "OTP verified successfully",
-		"user": gin.H{
-			"id":                 user.ID.Hex(),
-			"email":              user.Email,
-			"name":               user.Name,
-			"accommodation_type": user.AccommodationType,
-			"is_verified":        user.IsVerified,
-		},
-		"session_token": sessionToken,
+		"token":   token,
+		"user":    user,
 	})
 }
 
 // ResendOTP handles OTP resend requests
 func ResendOTP(c *gin.Context) {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"error":   "Database not available",
+			"message": "MongoDB connection is not established",
+		})
+		return
+	}
+
 	email := c.Query("email")
 	purpose := c.Query("purpose")
 
@@ -335,7 +373,7 @@ func ResendOTP(c *gin.Context) {
 
 	// Find user
 	var user models.User
-	collection := db.GetMongoDB().Collection("users")
+	collection := mongoDB.Collection("users")
 	err := collection.FindOne(context.Background(), bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -355,6 +393,12 @@ func ResendOTP(c *gin.Context) {
 
 // generateAndSendOTP generates and sends OTP to user
 func generateAndSendOTP(userID primitive.ObjectID, email, purpose string) error {
+	// Check if MongoDB is connected
+	mongoDB := db.GetMongoDB()
+	if mongoDB == nil {
+		return fmt.Errorf("database not available: MongoDB connection is not established")
+	}
+
 	// Generate 6-digit OTP
 	code, err := generateOTP()
 	if err != nil {
@@ -371,7 +415,7 @@ func generateAndSendOTP(userID primitive.ObjectID, email, purpose string) error 
 		CreatedAt: time.Now(),
 	}
 
-	collection := db.GetMongoDB().Collection("otps")
+	collection := mongoDB.Collection("otps")
 	_, err = collection.InsertOne(context.Background(), otp)
 	if err != nil {
 		return err
